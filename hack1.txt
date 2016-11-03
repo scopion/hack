@@ -1,0 +1,119 @@
+本文是一篇基础性的文章，面向的主要群体是Python爱好者，由于本人喜好研究一些有趣的事情，所以写下此篇文章和大家分享。那么接下来进入正题，我们要制作的是一款TCP端口服务的扫描器，本人也使用了多年开源工具Nmap，为期强大的功能折服。Fyodor Vaskovich 编写Nmap 时用了C 语言和Lua 脚本。Nmap 能够被相当不错的集成到Python 。
+
+在设计开始我们要导入Python的BCD套接字API模块socket。Socket API提供了一系列的函数将用来实现我们的TCP端口扫描。
+
+socket.gethostbyname(hostname) ：这个函数将主机名换换为IP 地址，如www.syngress.com 将会返回IPv4 地址为69.163.177.2。
+
+socket.gethostbyaddr(ip_address) ：这个函数传入一个IP 地址将返回一个元组，其中包含主机名，别名列表和同一接口的IP 地址列表。
+
+我们将构建两个函数connScan 和portScan,portScan 函数需要主机名和端口作为参数。它首先尝试通过gethostbyname()函数从友好的主机名中解析出主机IP 地址。接下来，它将打印出主机名或者IP 地址，然后枚举每一个端口尝试着用connScan 函数去连接主机。connScan 函数需要两个参数：tgtHost and tgtPort，并尝试产生一个到目标主机端口的连接。如果成功的话，connScan 将打印端口开放的信息，如果失败的话，将打印端口关闭的信息。
+
+接下来我们要获取应用标识，获取应用标识是通过在connScan函数中插入额外的验证代码，如果端口开放了，在发送字符串那么端口就会进行相应，从端口的响应来判断在目标主机上的应用程序的一些信息。
+
+同时我们采用了多线程方式，如果端口数量以及目标地址的数量过多，采用多线程会大大提高程序的运行效率：
+
+for tgtPort in tgtPorts:
+
+print('Scanning port ' + str(tgtPort))
+
+t = threading.Thread(target=connScan, args=(tgtHost,int(tgtPort)))
+
+t.start()
+
+主要代码如下所示：
+
+#!/usr/bin/env python
+
+# -*- coding: utf-8 -*-
+
+import socket
+
+import threading
+
+screenLock = threading.Semaphore(value = 1)
+
+def connScan(tgtHost,tgtPort):
+
+    try:
+
+        connSkt = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+
+        connSkt.connect((tgtHost,tgtPort))
+
+        connSkt.send('wilson\r\n')
+
+        results = connSkt.recv(100)
+
+        screenLock.acquire()
+
+        print('[+]%d/tcp open' % tgtPort)
+
+        print('[+]' + str(results))
+
+        # connSkt.close()
+
+    except:
+
+        screenLock.acquire()
+
+        # print('[-]%d/tcp closed' % tgtPort)
+
+    finally:
+
+        screenLock.release()
+
+        connSkt.close()
+
+def portScan(tgtHost, tgtPorts):
+
+    try:
+
+        tgtIP = socket.gethostbyname(tgtHost)
+
+    except:
+
+        print("[-] Cannot resolve '%s': Unknown host" %tgtHost)
+
+        return
+
+    try:
+
+        tgtName = socket.gethostbyaddr(tgtIP)
+
+        print('\n[+] Scan Results for: ' + tgtName[0])
+
+    except:
+
+        print('\n[+] Scan Results for: ' + tgtIP)
+
+    socket.setdefaulttimeout(0.1)
+
+    for tgtPort in tgtPorts:
+
+        # print('Scanning port ' + str(tgtPort))
+
+        t = threading.Thread(target=connScan,args=(tgtHost,int(tgtPort)))
+
+        t.start()
+
+def main():
+
+    tgtHost = '/'
+
+    tgtPort = []
+
+    for x in range(1,20000):
+
+        tgtPort.append(x)
+
+    if (tgtHost == None) | (tgtPort == None):
+
+        print('[-] You must specify a target host and port[s]!')
+
+        exit(0)
+
+    portScan(tgtHost, tgtPort)
+
+if __name__ == '__main__':
+
+    main()
