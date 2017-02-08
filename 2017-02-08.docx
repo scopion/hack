@@ -1,0 +1,32 @@
+#SQL盲注
+
+1.SQL server延迟
+SQL Server提供了一种明确的暂停任何查询执行的能力，使用WAITOR关键字可促使SQL Server将查询终止一段时间后再执行。例如：WAITFOR DELAY '00:01:53'表示将执行暂停1分53秒。
+常见的攻击方式如下：
+
+SELECT COUNT(*) FROM reviews WHERE review_author='wilson'
+
+SELECT COUNT(*) FROM reviews WHERE review_author='wilson'; IF SYSTEM_USER='sa' WAITFOR DELAY '00:01:35 通过该方法来确定登录数据库的用户是否为sa
+
+如果请求多于01:35，那么可以推断登录的用户为sa
+
+同时也可以使用二分搜索来推断
+
+'; IF ASCII(SUBSTRING((...),i,1)) > k WAITFOR DELAY '00:01:05';--
+
+2.oracle延迟
+在Oracle中使用基于时间的SQL盲注的情况不是很顺手，由于sleep()函数在Oracle中不支持SELECT语句的WHERE子句中嵌入。可以使用如下的语句来调用：
+
+BEGIN DBMS_LOCK.SLEEP(N);END;
+
+其中n表示的是执行终止的秒数。
+
+#基于时间的盲注要考虑一些问题：
+
+在mysql、oracle、sql server、po~~四种数据库中可以使用二分搜索法和基于时间的位提取推断技术，我们将时间看作是一种静态的属性，那么其中一种反应时间快，另外一种反应时间慢，我们可以一句该推断状态信息。
+
+如果数据库在高负载的情况下，我们很难分析是否存在注入，那么我们要：
+
+1.将延迟设置足够长时间
+
+2.同时发送两个几乎完全相同的请求，他们都包含延迟产生字句，其中一个请求在位值为0时产生延迟，另一个在位值为1时产生延迟
