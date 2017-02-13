@@ -1,0 +1,36 @@
+#SQL注入的防御
+
+领域驱动安全
+1.我们将SQL执行可划分为 浏览器-服务端-数据库三部分，用户在浏览器中输入动态的SQL语句或者是用户名口令，那么在服务端不做处理的情况下就去查询数据库那么就会产生SQL注入漏洞，如 admin-sql-admin------or '1' ='1-sql-admin 
+2.第二种就是在服务端做简单的验证，主要是判断用户名输入时否合法，一般包括对一些特殊的字符进行判断或者是对字符串的长度进行校验来判断输入合法等
+3.第三种就是通过做SQL语句的黑名单，对一些我们SQL注入常用的语句进行过滤，但是这就会产生一个问题，我们正常需要使用的SQL语句就无法使用，因此此种方法不可完全抵挡SQL注入，因为SQL语句的构造千变万化，我们是无法准确的进行处理。
+
+使用参数化查询
+作为一种更加安全的动态字符串构造的方法，大多数现代此案城语言和数据库访问API可以使用占位符活绑定变量来向SQL查询提供参数（而非直接对用户输入进行操作）。一般处理SQL注入使用参数化查询来取代动态查询语句.
+
+下面展示一段易被攻击的程序代码:
+
+username = request("username")
+password = request("password")
+sql = "SELECT * FROM users WHERE username= '" + username + "' AND password='" +　password + "'"
+result = Db.Execute(Sql)
+if (result) /* successful login*/
+
+-->
+并不是所有的数据SQL语句都可以参数化，特别是只能参数化数据值，而不能参数化SQL标识符或者是关键字，因此不能出现下列格式的参数化语句：
+select * from ? where username='join'
+select ? from users shere username = 'join'
+select * from users where username like 'j%' order by ?
+
+1.java参数化语句
+Java提供了ＪＤＢＣ框架，支持多种的数据库访问方法，包括通过preparestatement类来使用参数化语句，下面是较早出现易受攻击的例子，我们来使用jdbc预处理语句对它进行了重写。
+
+connectiong con = Drivermanager.getconnection(connectionstring);
+string sql = "select * from users where username=? and password=?";
+preparestatement lookupusers = con.preparestatement)(sql);
+//将参数添加到SQL查询中
+
+lookupuser.setstring(1,username); //在位置1添加字符创
+lookupuser.setstring(2,username); //在位置2添加字符创
+
+rs = lookupuser.executequery();
