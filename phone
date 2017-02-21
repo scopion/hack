@@ -1,0 +1,26 @@
+#coding:utf8
+
+import urllib
+import urllib2
+import random
+import multiprocessing
+
+def ceshi():
+    str = random.choice(['139','188','185','136','158','151'])+"".join(random.choice("0123456789") for i in range(8))
+#     print str
+    url = "https://api.weclassroom.com/user/rgcheckmobile?mobile=" + str
+    req = urllib2.Request(url)
+    res_data = urllib2.urlopen(req)
+    res = res_data.read() + str+ '\n'
+    f = open('D:\phone.txt','a')
+    f.write(res)
+    f.close()
+    print res+str
+    
+if __name__ == "__main__":
+    pool = multiprocessing.Pool(processes=20)
+    for i in xrange(100000):
+        pool.apply_async(ceshi)
+    pool.close()
+    pool.join()
+    
