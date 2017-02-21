@@ -61,9 +61,9 @@ def e'x(host,url,body,payload_type,true_dom,timeout=100):
     print res
 
 if __name__=='__main__':
-    host = 'kaoshi.speiyou.com'
-    url= '/kaoshi/valEmail'
-    body = 'user.email=*'
-    true_dom = u'邮箱已注册'
+    host = 
+    url= 
+    body =
+    true_dom =
     payload_type = 16
     exploit(host,url,body,payload_type,true_dom)
