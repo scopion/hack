@@ -1,0 +1,168 @@
+几个处理原则：
+
+不能造成二次伤害（系统故障、日志丢失等等）；
+需要及时保存操作记录和结果记录；
+需要的准备：
+
+静态编译的 w/last/lastb/lastlog/ps/top/ss/netstat/lsof/find/rpm 等命令；
+一些常见的检查工具/脚本；
+操作分类：
+
+Unusual Processes and Services（异常的进程和服务）
+Unusual Files（异常的文件）
+Unusual Network Usage（异常的网络使用情况）
+Unusual Scheduled Tasks（异常的计划任务）
+Unusual Accounts（异常的账户）
+Unusual Log Entries（异常的日志条目）
+Other Unusual Items（其它的异常情况）
+Additional Supporting Tools（额外的一些支撑工具）
+异常的账户：
+
+
+查看 /etc/passwd 中的账户列表，并根据UID进行排序：
+# sort -nk3 -t: /etc/passwd | less
+常规用户都会在其中，尤其注意那些 UID < 500 的账户。
+
+查看异常的 UID为0 的账户：
+# egrep ':0+:' /etc/passwd
+
+On systems that use multiple authentication methods:
+# getent passwd | egrep ':0+:'
+
+查看系统上的「孤儿文件」，这些文件可能是由攻击者创建的临时账户产生的：
+# find / -nouser -print
+查看 /etc/passwd 中的账户列表，并根据UID进行排序：
+# sort -nk3 -t: /etc/passwd | less
+常规用户都会在其中，尤其注意那些 UID < 500 的账户。
+
+查看异常的 UID为0 的账户：
+# egrep ':0+:' /etc/passwd
+
+On systems that use multiple authentication methods:
+# getent passwd | egrep ':0+:'
+
+查看系统上的「孤儿文件」，这些文件可能是由攻击者创建的临时账户产生的：
+# find / -nouser -print
+查看 /etc/passwd 中的账户列表，并根据UID进行排序：
+# sort -nk3 -t: /etc/passwd | less
+常规用户都会在其中，尤其注意那些 UID < 500 的账户。
+ 
+查看异常的 UID为0 的账户：
+# egrep ':0+:' /etc/passwd
+ 
+On systems that use multiple authentication methods:
+# getent passwd | egrep ':0+:'
+ 
+查看系统上的「孤儿文件」，这些文件可能是由攻击者创建的临时账户产生的：
+# find / -nouser -print
+
+异常的进程和服务：
+# top
+# ps -aux
+# lsof -p $pid
+# chkconfig --list
+
+异常的文件：
+
+用命令 rpm -Va 进行packages校验：
+
+
+# rpm -Va | sort
+
+# rpm -Va | sort
+这条命令会对比当前文件和RPM数据中记录的文件的大小、MD5值、权限、类型、属主、属组、修改时间等信息：
+
+
+S – File size differs（文件大小发生变化）
+M – Mode differs(permissions)（文件权限/模式发生变化）
+5 – MD5 sum differs（文件MD5值发生变化）
+D – Device number mismatch（设备名不匹配）
+L – readLink path mismatch（readLink路径不匹配）
+U – user ownership differs（用户所有者不同）
+G – group ownership differs（属组所有者不同）
+T – modification time differs（文件修改时间发生变化）
+
+对于在 /sbin, /bin, /usr/sbin, 和 /usr/bin 等目录中的文件要尤其注意。在部分Linux发行版中，这个分析可以用内建的 check-packages 脚本来完成。
+
+查找那些文件链接数异常（比如链接数为0）的运行中进程，攻击者可能将一些数据隐藏在其中，或是通过这类文件启动后门：
+
+# lsof +L1
+查找异常的SUID(root)文件：
+
+# find / -uid 0 -perm -4000 -print
+查看最近都有哪些文件发生了变动：
+
+# ls -alt /
+# find / -mtime -2d -print0 | xargs -0 ls -lt
+查找一些文件名中有「空格」、「点」的伪装文件：
+
+# find / -name " " -print
+# find / -name ".. " -print
+# find / -name ". " -print
+查找一些异常的大文件（>10MB）：
+# find / -size +10000k -print
+异常的网络使用情况：
+
+查看网络是否处于混杂模式：
+
+# ip link | grep PROMISC
+查看网络端口的使用情况：
+
+
+# 查找异常端口监听情况
+# netstat -nap
+# ss -pln
+
+# 查看是哪些进程占用了哪个端口
+# lsof -i
+
+# 查找异常端口监听情况
+# netstat -nap
+# ss -pln
+ 
+# 查看是哪些进程占用了哪个端口
+# lsof -i
+查看ARP的情况：
+
+# arp -a
+查看DNS和hosts设置：
+
+# vim /etc/resolv.conf
+# vim /etc/hosts
+异常的计划任务：
+
+查找异常的root用户的计划任务：
+
+
+# crontab -u root -l
+1
+# crontab -u root -l
+查找异常的系统级别的计划任务：
+
+# cat /etc/crontab
+# ls -lt /etc/cron.*
+查找异常的开机启动项：
+
+# ls -lt /etc/rc*.d
+异常的日志条目：
+
+# w
+# last
+# lastb
+# lastlog
+# ls -lt /var/log/
+# vim /var/log/messages
+# vim /var/log/secure
+其它的异常情况：
+
+# uptime
+# free -m
+# df -h
+# df -hi
+额外的一些支撑工具：
+
+Chkrootkit
+Tripwire
+AIDE
+The Center for Internet Security
+The free Bastille Script
