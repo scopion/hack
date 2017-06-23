@@ -1,0 +1,94 @@
+win: DLL动态链接库
+linux： .so共享对象
+
+login：
+	
+	用户名：用户ID，区分使用者权限（访问文件资源权限）
+
+认证机制：Authentication鉴别用户
+
+授权：Authorization
+
+审计：Audition（日志审计）
+
+prompt：命令提示符
+
+命令：二进制和脚本文件
+
+magic number：执行格式（魔数）
+shebang
+
+#！/bin/bash
+
+# command options... arguments...
+
+选项：
+	短选项
+	长选项
+参数：
+
+list：ls
+
+文件夹：
+
+目录：也是文件，路径映射
+
+路径：从指定起始点到目的地所经过位置
+
+文件系统：filesystem
+
+列出指定路径下的文件
+
+pwd：print working directory当前路径
+
+ls -l长格式
+
+	文件类型 
+		-:普通文件
+		d:目录文件
+		b:块设备文件（block）
+		c:字符设备文件
+		l:链接符号文件（软连接文件）
+		p:命令管道文件（pipe）
+		s:套接字文件（socket）
+
+	/dev
+	
+	文件权限：9位，3位一组
+		rwx(读，写，执行)
+	
+	文件被硬链接的次数：
+	文件的属主（owber）
+	文件的属组（group）
+	文件大小（size）,单位是字节
+	文件时间戳，最近一次被修改的时间
+		访问：access
+		修改：modify
+		改变：change,metadata,元数据
+	
+	-h：做单位转换
+	-a:所有文件，显示以.开头的隐藏文件
+		.  :表示当前目录
+		.. ：表示上一个目录
+	
+	-A:
+	
+	-d：显示目录自身属性
+	
+	-i:
+	
+	index node ， inode
+	
+	-r：逆序显示
+	-R: 递归显示
+	
+cd:change directory切换目录	
+
+	cd 回到用户家目录，主目录，home
+	cd ~USERNAMWE：进入指定用户的家目录
+	
+	
+	
+	
+	
+	
